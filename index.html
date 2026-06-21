@@ -104,7 +104,7 @@
     font-weight:800;
     line-height:1.05;
   }
-  .hub-inner .b1{font-size:18px;font-family:'Bricolage Grotesque',sans-serif;}
+  .hub-inner .b1{font-size:13px;font-family:'Bricolage Grotesque',sans-serif;}
   .hub-inner .b2{font-size:7px;letter-spacing:1px;}
   #spinBtn{
     margin-top:30px;
@@ -238,7 +238,7 @@
   <svg id="wheel" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
   <div class="hub">
     <div class="hub-inner">
-      <div class="b1">Be</div>
+      <div class="b1">BeBeyond</div>
       <div class="b2">DIGITAL SOLUTIONS</div>
     </div>
   </div>
@@ -265,15 +265,38 @@ const segments = [
   { label:"SORRY\nTRY AGAIN", color:"#ffffff", textColor:"#0A1628", win:false, icon:"meh" },
   { label:"ONE\nREEL", color:"#219ebc", textColor:"#ffffff", win:true, icon:"reel" },
   { label:"SORRY\nTRY AGAIN", color:"#ffffff", textColor:"#0A1628", win:false, icon:"meh2" },
-  { label:"GRAND\nGIFT", color:"#fb8500", textColor:"#ffffff", win:true, icon:"gift" },
+  { label:"GRAND\nGIFT", color:"#FFD400", textColor:"#0A1628", win:true, icon:"gift", weight:0.6 },
   { label:"SORRY\nTRY AGAIN", color:"#ffffff", textColor:"#0A1628", win:false, icon:"meh3" },
-  { label:"5 DESIGNS!\n1 LOGO", color:"#219ebc", textColor:"#ffffff", win:true, icon:"pen" },
+  { label:"5 DESIGNS /\n1 LOGO", color:"#219ebc", textColor:"#ffffff", win:true, icon:"pen" },
   { label:"SORRY\nTRY AGAIN", color:"#ffffff", textColor:"#0A1628", win:false, icon:"frown" },
   { label:"WEBSITE &\nINSTAGRAM\nAUDIT", color:"#fb8500", textColor:"#ffffff", win:true, icon:"globe" }
 ];
 
 const N = segments.length;
-const anglePer = 360 / N;
+const anglePer = 360 / N; // fallback / average, kept for jitter sizing
+
+// ---- variable segment widths (e.g. Grand Gift is narrower) ----
+function computeAngles(){
+  const weights = segments.map(s => s.weight || 1);
+  const total = weights.reduce((a,b)=>a+b, 0);
+  const widths = weights.map(w => (w/total)*360);
+  const starts = [];
+  const centers = [];
+  let cum = 0;
+  for(let i=0;i<N;i++){
+    starts.push(cum);
+    centers.push(cum + widths[i]/2);
+    cum += widths[i];
+  }
+  // shift so segment 0's center sits at angle 0 (top, under pointer)
+  const shift = centers[0];
+  for(let i=0;i<N;i++){
+    starts[i] -= shift;
+    centers[i] -= shift;
+  }
+  return { widths, starts, centers };
+}
+const { widths: segWidths, starts: segStarts, centers: segCenters } = computeAngles();
 const R = 245, CX = 250, CY = 250;
 
 function polar(cx,cy,r,angDeg){
@@ -340,28 +363,31 @@ function buildWheel(){
   const svg = document.getElementById('wheel');
   let html = "";
   for(let i=0;i<N;i++){
-    const startA = i*anglePer - anglePer/2;
-    const endA = startA + anglePer;
+    const startA = segStarts[i];
+    const endA = segStarts[i] + segWidths[i];
     const [x1,y1] = polar(CX,CY,R,startA);
     const [x2,y2] = polar(CX,CY,R,endA);
-    const large = anglePer > 180 ? 1 : 0;
+    const large = segWidths[i] > 180 ? 1 : 0;
     const path = `M${CX},${CY} L${x1.toFixed(2)},${y1.toFixed(2)} A${R},${R} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`;
     html += `<path d="${path}" fill="${segments[i].color}" stroke="#0A1628" stroke-width="2"/>`;
 
-    // icon position
-    const midA = startA + anglePer/2;
+    // icon position (scale down a bit for narrower segments like Grand Gift)
+    const midA = segCenters[i];
+    const widthScale = Math.min(1, segWidths[i] / anglePer);
+    const iconScale = 0.75 + 0.25*widthScale;
     const [ix,iy] = polar(CX,CY,R*0.42,midA);
-    html += iconSVG(segments[i].icon, ix, iy, 1, segments[i].textColor);
+    html += iconSVG(segments[i].icon, ix, iy, iconScale, segments[i].textColor);
 
     // label text (curved-ish via rotated text block)
     const [tx,ty] = polar(CX,CY,R*0.74,midA);
     const lines = segments[i].label.split("\n");
     let rot = midA;
+    const fontSize = (10 + 1.5*widthScale).toFixed(1);
     // keep text upright-ish on lower half
     let extra = 0;
     let tspans = lines.map((ln,idx)=>`<tspan x="0" dy="${idx===0?0:11}">${ln}</tspan>`).join("");
     html += `<text transform="translate(${tx.toFixed(2)},${ty.toFixed(2)}) rotate(${rot})"
-                text-anchor="middle" font-size="11.5" font-weight="800"
+                text-anchor="middle" font-size="${fontSize}" font-weight="800"
                 font-family="'Public Sans',Arial,sans-serif" fill="${segments[i].textColor}">${tspans}</text>`;
   }
   // outer ring
@@ -394,7 +420,6 @@ const styleSheet = document.createElement('style');
 styleSheet.textContent = `@keyframes fall{ to{ transform:translateY(105vh) rotate(720deg); opacity:0.3; } }`;
 document.head.appendChild(styleSheet);
 
-let lastIndex = -1;
 function spin(){
   if(spinning) return;
   spinning = true;
@@ -402,16 +427,14 @@ function spin(){
   resultEl.innerHTML = "";
   document.getElementById('overlay').classList.remove('show');
 
-  let winningIndex = Math.floor(Math.random()*N);
-  // avoid landing on the exact same segment twice in a row
-  while(winningIndex === lastIndex){
-    winningIndex = Math.floor(Math.random()*N);
-  }
-  lastIndex = winningIndex;
+  // true fair random: every wedge has an equal 1-in-N chance, every single spin,
+  // independent of what happened before (no artificial bias/repeat-blocking)
+  const winningIndex = Math.floor(Math.random()*N);
   // angle so that the center of winningIndex segment lands under the top pointer
-  const segCenter = winningIndex*anglePer;
+  const segCenter = segCenters[winningIndex];
   const fullSpins = 6 + Math.floor(Math.random()*3); // 6-8 full turns
-  const jitter = (Math.random()*2 - 1) * (anglePer/2 - 5); // stay safely inside segment
+  const safeHalfWidth = Math.max(segWidths[winningIndex]/2 - 5, 2);
+  const jitter = (Math.random()*2 - 1) * safeHalfWidth; // stay safely inside this segment
 
   // desired FINAL absolute angle (mod 360) so that (segCenter+jitter) sits under the top pointer
   const desiredFinalAngle = ((360 - (segCenter + jitter)) % 360 + 360) % 360;
