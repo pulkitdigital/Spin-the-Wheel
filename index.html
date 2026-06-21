@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BeBeyond Digital Solutions — Spin the Wheel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1628;
+    --orange:#fb8500;
+    --green:#1D9E75;
+    --blue:#219ebc;
+    --yellow:#fb8500;
+    --white:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:radial-gradient(circle at center, #1a2942 0%, var(--navy) 70%);
+    font-family:'Public Sans', Arial, sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    overflow-x:hidden;
+    padding:20px 0 60px;
+  }
+  h1{
+    font-family:'Bricolage Grotesque','Public Sans',sans-serif;
+    letter-spacing:1px;
+    margin:10px 0 4px;
+    text-align:center;
+    font-size:28px;
+  }
+  .sub{
+    color:#bcd;
+    margin-bottom:10px;
+    text-align:center;
+    font-size:14px;
+  }
+  .hint{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.2);
+    padding:6px 16px;
+    border-radius:20px;
+    font-size:13px;
+    margin-bottom:25px;
+  }
+  .hint b{color:var(--yellow);}
+  .wheel-wrap{
+    position:relative;
+    width:520px;
+    max-width:90vw;
+  }
+  .pointer{
+    position:absolute;
+    top:-28px;
+    left:50%;
+    transform:translateX(-50%);
+    width:0;
+    height:0;
+    border-left:22px solid transparent;
+    border-right:22px solid transparent;
+    border-top:38px solid var(--orange);
+    z-index:5;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+  }
+  .pointer::after{
+    content:'';
+    position:absolute;
+    top:-38px;
+    left:-22px;
+    width:44px;
+    height:44px;
+  }
+  svg#wheel{
+    display:block;
+    width:100%;
+    height:auto;
+    filter:drop-shadow(0 8px 25px rgba(0,0,0,0.5));
+    transition:transform 4.5s cubic-bezier(0.12,0.85,0.18,1);
+  }
+  .hub{
+    position:absolute;
+    top:50%;left:50%;
+    transform:translate(-50%,-50%);
+    width:92px;height:92px;
+    border-radius:50%;
+    background:var(--orange);
+    border:5px solid white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:4;
+    box-shadow:0 4px 12px rgba(0,0,0,0.5);
+  }
+  .hub-inner{
+    text-align:center;
+    color:white;
+    font-weight:800;
+    line-height:1.05;
+  }
+  .hub-inner .b1{font-size:18px;font-family:'Bricolage Grotesque',sans-serif;}
+  .hub-inner .b2{font-size:7px;letter-spacing:1px;}
+  #spinBtn{
+    margin-top:30px;
+    padding:14px 38px;
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:0.5px;
+    border:none;
+    border-radius:30px;
+    background:linear-gradient(135deg,var(--orange),#ff7a47);
+    color:white;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(240,90,40,0.5);
+    transition:transform 0.15s ease;
+  }
+  #spinBtn:hover{transform:translateY(-2px);}
+  #spinBtn:active{transform:translateY(1px);}
+  #spinBtn:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+    transform:none;
+  }
+  .result{
+    margin-top:22px;
+    min-height:60px;
+    text-align:center;
+  }
+  .result-card{
+    display:inline-block;
+    padding:14px 28px;
+    border-radius:14px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.25);
+    font-size:18px;
+    font-weight:700;
+    animation:pop 0.4s ease;
+  }
+  .result-card.win{
+    background:rgba(29,158,117,0.18);
+    border-color:var(--green);
+    color:#7fffd4;
+  }
+  .result-card.lose{
+    background:rgba(255,255,255,0.06);
+    color:#ddd;
+  }
+  @keyframes pop{
+    0%{transform:scale(0.7);opacity:0;}
+    100%{transform:scale(1);opacity:1;}
+  }
+  .confetti{
+    position:fixed;
+    top:-10px;
+    width:8px;height:14px;
+    z-index:50;
+    pointer-events:none;
+  }
+  footer{
+    margin-top:30px;
+    font-size:11px;
+    color:#789;
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎡 BEBEYOND DIGITAL SOLUTIONS</h1>
+<div class="sub">Spin & Win — Exhibition Lucky Wheel</div>
+<div class="hint">Press <b>SPACEBAR</b> or tap the button below to spin</div>
+
+<div class="wheel-wrap">
+  <div class="pointer"></div>
+  <svg id="wheel" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="hub">
+    <div class="hub-inner">
+      <div class="b1">Be</div>
+      <div class="b2">DIGITAL SOLUTIONS</div>
+    </div>
+  </div>
+</div>
+
+<button id="spinBtn">SPIN THE WHEEL</button>
+<div class="result" id="result"></div>
+<footer>BeBeyond Digital Solutions &copy; 2026 — Prayagraj</footer>
+
+<script>
+// ---- Segment data (clockwise from top, matches physical wheel) ----
+const segments = [
+  { label:"SORRY\nTRY AGAIN", color:"#ffffff", textColor:"#0A1628", win:false, icon:"sadface" },
+  { label:"BUSINESS\nAUDIT", color:"#fb8500", textColor:"#ffffff", win:true, icon:"folder" },
+  { label:"SORRY\nTRY AGAIN", color:"#ffffff", textColor:"#0A1628", win:false, icon:"meh" },
+  { label:"ONE\nREEL", color:"#219ebc", textColor:"#ffffff", win:true, icon:"reel" },
+  { label:"SORRY\nTRY AGAIN", color:"#ffffff", textColor:"#0A1628", win:false, icon:"meh2" },
+  { label:"GRAND\nGIFT", color:"#fb8500", textColor:"#ffffff", win:true, icon:"gift" },
+  { label:"SORRY\nTRY AGAIN", color:"#ffffff", textColor:"#0A1628", win:false, icon:"meh3" },
+  { label:"5 DESIGNS!\n1 LOGO", color:"#219ebc", textColor:"#ffffff", win:true, icon:"pen" },
+  { label:"SORRY\nTRY AGAIN", color:"#ffffff", textColor:"#0A1628", win:false, icon:"frown" },
+  { label:"WEBSITE &\nINSTAGRAM\nAUDIT", color:"#fb8500", textColor:"#ffffff", win:true, icon:"globe" }
+];
+
+const N = segments.length;
+const anglePer = 360 / N;
+const R = 245, CX = 250, CY = 250;
+
+function polar(cx,cy,r,angDeg){
+  const a = (angDeg-90) * Math.PI/180;
+  return [cx + r*Math.cos(a), cy + r*Math.sin(a)];
+}
+
+function iconSVG(type, x, y, scale, color){
+  // small icon set drawn with simple line-art, centered at (x,y)
+  const s = scale;
+  const c = color;
+  const t = `translate(${x},${y}) scale(${s})`;
+  switch(type){
+    case "globe":
+      return `<g transform="${t}" fill="none" stroke="${c}" stroke-width="2.4">
+        <circle cx="0" cy="0" r="16"/>
+        <ellipse cx="0" cy="0" rx="7" ry="16"/>
+        <line x1="-16" y1="0" x2="16" y2="0"/>
+        <path d="M-14,-8 Q0,-13 14,-8"/>
+        <path d="M-14,8 Q0,13 14,8"/>
+      </g>`;
+    case "folder":
+      return `<g transform="${t}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linejoin="round">
+        <path d="M-16,-8 h10 l3,4 h19 v18 h-32 z"/>
+        <circle cx="6" cy="6" r="9"/>
+        <path d="M6,1 v10 M1,6 h10"/>
+      </g>`;
+    case "reel":
+      return `<g transform="${t}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linejoin="round">
+        <rect x="-15" y="-15" width="30" height="30" rx="5"/>
+        <polygon points="-5,-7 -5,7 9,0" fill="${c}" stroke="none"/>
+      </g>`;
+    case "gift":
+      return `<g transform="${t}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linejoin="round">
+        <rect x="-16" y="-4" width="32" height="22" rx="2"/>
+        <line x1="-16" y1="6" x2="16" y2="6"/>
+        <line x1="0" y1="-4" x2="0" y2="18"/>
+        <path d="M0,-4 C-10,-4 -10,-16 0,-16 C10,-16 10,-4 0,-4"/>
+      </g>`;
+    case "pen":
+      return `<g transform="${t}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linejoin="round">
+        <path d="M-12,16 L8,-14 L14,-8 L-6,22 L-14,24 Z"/>
+        <line x1="3" y1="-9" x2="9" y2="-3"/>
+      </g>`;
+    case "sadface":
+    case "meh":
+    case "meh2":
+    case "meh3":
+    case "frown":
+      const mouth = type==="sadface" || type==="frown"
+        ? `<path d="M-7,9 Q0,2 7,9" />`
+        : `<line x1="-7" y1="8" x2="7" y2="8"/>`;
+      return `<g transform="${t}" fill="none" stroke="${c}" stroke-width="2.2">
+        <circle cx="0" cy="0" r="15"/>
+        <circle cx="-5" cy="-4" r="1.6" fill="${c}" stroke="none"/>
+        <circle cx="5" cy="-4" r="1.6" fill="${c}" stroke="none"/>
+        ${mouth}
+      </g>`;
+    default: return "";
+  }
+}
+
+function buildWheel(){
+  const svg = document.getElementById('wheel');
+  let html = "";
+  for(let i=0;i<N;i++){
+    const startA = i*anglePer - anglePer/2;
+    const endA = startA + anglePer;
+    const [x1,y1] = polar(CX,CY,R,startA);
+    const [x2,y2] = polar(CX,CY,R,endA);
+    const large = anglePer > 180 ? 1 : 0;
+    const path = `M${CX},${CY} L${x1.toFixed(2)},${y1.toFixed(2)} A${R},${R} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`;
+    html += `<path d="${path}" fill="${segments[i].color}" stroke="#0A1628" stroke-width="2"/>`;
+
+    // icon position
+    const midA = startA + anglePer/2;
+    const [ix,iy] = polar(CX,CY,R*0.42,midA);
+    html += iconSVG(segments[i].icon, ix, iy, 1, segments[i].textColor);
+
+    // label text (curved-ish via rotated text block)
+    const [tx,ty] = polar(CX,CY,R*0.74,midA);
+    const lines = segments[i].label.split("\n");
+    let rot = midA;
+    // keep text upright-ish on lower half
+    let extra = 0;
+    let tspans = lines.map((ln,idx)=>`<tspan x="0" dy="${idx===0?0:11}">${ln}</tspan>`).join("");
+    html += `<text transform="translate(${tx.toFixed(2)},${ty.toFixed(2)}) rotate(${rot})"
+                text-anchor="middle" font-size="11.5" font-weight="800"
+                font-family="'Public Sans',Arial,sans-serif" fill="${segments[i].textColor}">${tspans}</text>`;
+  }
+  // outer ring
+  html += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#0A1628" stroke-width="6"/>`;
+  svg.innerHTML = html;
+}
+buildWheel();
+
+// ---- Spin logic ----
+let currentRotation = 0;
+let spinning = false;
+const wheelEl = document.getElementById('wheel');
+const resultEl = document.getElementById('result');
+const spinBtn = document.getElementById('spinBtn');
+
+function confettiBurst(){
+  const colors = ['#fb8500','#219ebc','#1D9E75','#ffffff'];
+  for(let i=0;i<40;i++){
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    el.style.left = Math.random()*100+'vw';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.transform = `rotate(${Math.random()*360}deg)`;
+    el.style.animation = `fall ${1.8+Math.random()*1.4}s linear forwards`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),3400);
+  }
+}
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `@keyframes fall{ to{ transform:translateY(105vh) rotate(720deg); opacity:0.3; } }`;
+document.head.appendChild(styleSheet);
+
+let lastIndex = -1;
+function spin(){
+  if(spinning) return;
+  spinning = true;
+  spinBtn.disabled = true;
+  resultEl.innerHTML = "";
+
+  let winningIndex = Math.floor(Math.random()*N);
+  // avoid landing on the exact same segment twice in a row
+  while(winningIndex === lastIndex){
+    winningIndex = Math.floor(Math.random()*N);
+  }
+  lastIndex = winningIndex;
+  // angle so that the center of winningIndex segment lands under the top pointer
+  const segCenter = winningIndex*anglePer;
+  const fullSpins = 6 + Math.floor(Math.random()*3); // 6-8 full turns
+  const jitter = (Math.random()*2 - 1) * (anglePer/2 - 5); // stay safely inside segment
+  // we want final rotation such that (segCenter - jitter + rotation) % 360 == 0 (pointer at top, 0deg)
+  const targetRotation = fullSpins*360 + (360 - (segCenter + jitter));
+  currentRotation += targetRotation;
+
+  wheelEl.style.transform = `rotate(${currentRotation}deg)`;
+
+  setTimeout(()=>{
+    spinning = false;
+    spinBtn.disabled = false;
+    const seg = segments[winningIndex];
+    const cardClass = seg.win ? 'win' : 'lose';
+    const emoji = seg.win ? '🎉' : '😅';
+    resultEl.innerHTML = `<div class="result-card ${cardClass}">${emoji} ${seg.label.replace(/\n/g,' ')}</div>`;
+    if(seg.win) confettiBurst();
+  }, 4600);
+}
+
+spinBtn.addEventListener('click', spin);
+document.addEventListener('keydown', (e)=>{
+  if(e.code === 'Space'){
+    e.preventDefault();
+    spin();
+  }
+});
+</script>
+</body>
+</html>
