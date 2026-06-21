@@ -369,7 +369,7 @@ function buildWheel(){
     const [x2,y2] = polar(CX,CY,R,endA);
     const large = segWidths[i] > 180 ? 1 : 0;
     const path = `M${CX},${CY} L${x1.toFixed(2)},${y1.toFixed(2)} A${R},${R} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`;
-    html += `<path d="${path}" fill="${segments[i].color}" stroke="#0A1628" stroke-width="2"/>`;
+    html += `<path d="${path}" fill="${segments[i].color}" stroke="none"/>`;
 
     // icon position (scale down a bit for narrower segments like Grand Gift)
     const midA = segCenters[i];
@@ -391,7 +391,7 @@ function buildWheel(){
                 font-family="'Public Sans',Arial,sans-serif" fill="${segments[i].textColor}">${tspans}</text>`;
   }
   // outer ring
-  html += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="#0A1628" stroke-width="6"/>`;
+  html += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="none"/>`;
   svg.innerHTML = html;
 }
 buildWheel();
