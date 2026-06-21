@@ -151,6 +151,63 @@
     background:rgba(255,255,255,0.06);
     color:#ddd;
   }
+  .overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(10,22,40,0.82);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+    padding:20px;
+  }
+  .overlay.show{
+    display:flex;
+    animation:fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+  .overlay-card{
+    background:linear-gradient(160deg,#0f2138,#0A1628);
+    border:2px solid rgba(255,255,255,0.15);
+    border-radius:24px;
+    padding:40px 36px;
+    text-align:center;
+    max-width:420px;
+    width:100%;
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    animation:pop 0.45s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .overlay-card.win{ border-color:var(--green); box-shadow:0 0 50px rgba(29,158,117,0.35), 0 20px 60px rgba(0,0,0,0.6); }
+  .overlay-card.lose{ border-color:rgba(255,255,255,0.2); }
+  .overlay-emoji{ font-size:54px; margin-bottom:6px; }
+  .overlay-eyebrow{
+    font-family:'Public Sans',sans-serif;
+    font-size:13px;
+    letter-spacing:2px;
+    color:#8fb3cc;
+    margin-bottom:10px;
+  }
+  .overlay-prize{
+    font-family:'Bricolage Grotesque',sans-serif;
+    font-size:30px;
+    font-weight:800;
+    color:#fff;
+    line-height:1.25;
+    margin-bottom:18px;
+    white-space:pre-line;
+  }
+  .overlay-card.win .overlay-prize{ color:#7fffd4; }
+  .overlay-close{
+    margin-top:6px;
+    padding:11px 30px;
+    border:none;
+    border-radius:30px;
+    background:linear-gradient(135deg,var(--orange),#ffa733);
+    color:white;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+  }
   @keyframes pop{
     0%{transform:scale(0.7);opacity:0;}
     100%{transform:scale(1);opacity:1;}
@@ -190,6 +247,15 @@
 <button id="spinBtn">SPIN THE WHEEL</button>
 <div class="result" id="result"></div>
 <footer>BeBeyond Digital Solutions &copy; 2026 — Prayagraj</footer>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-card" id="overlayCard">
+    <div class="overlay-emoji" id="overlayEmoji">🎉</div>
+    <div class="overlay-eyebrow">WHEEL RESULT</div>
+    <div class="overlay-prize" id="overlayPrize">—</div>
+    <button class="overlay-close" id="overlayClose">OK, GOT IT</button>
+  </div>
+</div>
 
 <script>
 // ---- Segment data (clockwise from top, matches physical wheel) ----
@@ -334,6 +400,7 @@ function spin(){
   spinning = true;
   spinBtn.disabled = true;
   resultEl.innerHTML = "";
+  document.getElementById('overlay').classList.remove('show');
 
   let winningIndex = Math.floor(Math.random()*N);
   // avoid landing on the exact same segment twice in a row
@@ -345,8 +412,16 @@ function spin(){
   const segCenter = winningIndex*anglePer;
   const fullSpins = 6 + Math.floor(Math.random()*3); // 6-8 full turns
   const jitter = (Math.random()*2 - 1) * (anglePer/2 - 5); // stay safely inside segment
-  // we want final rotation such that (segCenter - jitter + rotation) % 360 == 0 (pointer at top, 0deg)
-  const targetRotation = fullSpins*360 + (360 - (segCenter + jitter));
+
+  // desired FINAL absolute angle (mod 360) so that (segCenter+jitter) sits under the top pointer
+  const desiredFinalAngle = ((360 - (segCenter + jitter)) % 360 + 360) % 360;
+  // how far we currently are (mod 360)
+  const currentMod = ((currentRotation % 360) + 360) % 360;
+  // extra degrees needed to go from currentMod to desiredFinalAngle, moving forward
+  let delta = desiredFinalAngle - currentMod;
+  if(delta < 0) delta += 360;
+
+  const targetRotation = fullSpins*360 + delta;
   currentRotation += targetRotation;
 
   wheelEl.style.transform = `rotate(${currentRotation}deg)`;
@@ -357,10 +432,31 @@ function spin(){
     const seg = segments[winningIndex];
     const cardClass = seg.win ? 'win' : 'lose';
     const emoji = seg.win ? '🎉' : '😅';
-    resultEl.innerHTML = `<div class="result-card ${cardClass}">${emoji} ${seg.label.replace(/\n/g,' ')}</div>`;
+    const prizeText = seg.label.replace(/\n/g,' ');
+
+    // inline (fallback) result
+    resultEl.innerHTML = `<div class="result-card ${cardClass}">${emoji} ${prizeText}</div>`;
+
+    // prominent centered popup so the prize is always visible
+    const overlay = document.getElementById('overlay');
+    const overlayCard = document.getElementById('overlayCard');
+    document.getElementById('overlayEmoji').textContent = emoji;
+    document.getElementById('overlayPrize').textContent = seg.win ? prizeText : "SORRY, TRY AGAIN";
+    overlayCard.className = `overlay-card ${cardClass}`;
+    overlay.classList.add('show');
+
     if(seg.win) confettiBurst();
   }, 4600);
 }
+
+document.getElementById('overlayClose').addEventListener('click', ()=>{
+  document.getElementById('overlay').classList.remove('show');
+});
+document.getElementById('overlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'overlay'){
+    document.getElementById('overlay').classList.remove('show');
+  }
+});
 
 spinBtn.addEventListener('click', spin);
 document.addEventListener('keydown', (e)=>{
